@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local database
+prisma/dev.db
+
+# uploaded images (local storage)
+public/uploads/*.jpeg
+public/uploads/*.jpg
+public/uploads/*.png
+public/uploads/*.webp
+
+# ai agent files
+.agents/
+AGENTS.md
+CLAUDE.md
+workflows/
