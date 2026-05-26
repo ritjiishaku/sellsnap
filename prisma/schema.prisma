@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  password     String
+  name              String?
+  businessName      String?   @map("business_name")
+  avatarUrl         String?   @map("avatar_url")
+  resetToken        String?   @unique @map("reset_token")
+  resetTokenExpires DateTime? @map("reset_token_expires")
+  products                Product[]
+  hasCompletedOnboarding  Boolean   @default(false) @map("has_completed_onboarding")
+  hasSeenOnboarding       Boolean   @default(false) @map("has_seen_onboarding")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  priceKobo   Int      @map("price_kobo")
+  imageUrl    String?  @map("image_url")
+  slug        String   @unique
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id])
+  orders      Order[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("products")
+}
+
+model Order {
+  id         String   @id @default(cuid())
+  productId  String   @map("product_id")
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyerEmail String   @map("buyer_email")
+  buyerName  String?  @map("buyer_name")
+  amountKobo Int      @map("amount_kobo")
+  currency   String   @default("NGN")
+  status     String   @default("pending") // pending, paid, failed
+  txRef      String   @unique @map("tx_ref")
+  payment    Payment?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("orders")
+}
+
+model Payment {
+  id               String   @id @default(cuid())
+  orderId          String   @unique @map("order_id")
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  gatewayReference String   @unique @map("gateway_reference") // Flutterwave transaction ID
+  status           String
+  paidAt           DateTime @default(now()) @map("paid_at")
+
+  @@map("payments")
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([key, createdAt])
+  @@map("rate_limits")
+}
